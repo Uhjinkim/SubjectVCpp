@@ -3,102 +3,110 @@
 #include <windows.h>
 #include <stdio.h>
 #include <conio.h>
+
 #define ESC 27
-#define ENTER 10
+#define CR 13
 #define BKSPACE 8
+#define MAX_LENGTH_OF_COMMAND 100
+
+
+void clearArray(char arr[], int max) {
+    for (int i = 0; i < max; i++) {
+        arr[i] = 0;
+    }
+
+}
 
 int main() {
     char input = 0;
-    char word[100];
+    char command[MAX_LENGTH_OF_COMMAND] = "";
     int count;
+    
+
     printf("Week 2 VC++\n\n");
     Sleep(500);
     printf("202007017 김우진\n\n");
     Sleep(500);
-    printf("캐릭터: 이즈리얼\n\n");
+    printf("캐릭터: 이즈리얼\n");
     printf("스킬: q/w/e/r/d/f\n\n");
     Sleep(500);
     while(1) {
         printf("command>");
         count = -1;
         //_getch()로 입력받고 화면에 출력, 엔터 누를 때까지 반복
-        for (int i = 0; i < 101; i++) {
+        for (int i = 0; i < MAX_LENGTH_OF_COMMAND+1; i++) {
             input = _getch();
             printf("%c", input);
-            //백스페이스 입력 시 입력된 문자 제거(빠르게 연타하거나 길게 누르면 안될 수도 있음)
-            if (input == BKSPACE && count>=0) {
-                printf(" ");
-                printf("\b");
-                word[i] = 0;
-                i -= 2; // 지운 자리에 새로 입력할 수 있도록 배열 자릿수 앞당김
-            }
-            else if (input == BKSPACE) { // command> 부분이 지워지지 않도록 배열 자릿수가 0보다 작아지면 '>' 위치에 '>' 를 출력하여 침범 방지
-                printf(">");
-                i--;
-                count--;
+
+            if (input == BKSPACE) { //백스페이스 입력 시 입력된 문자 제거(빠르게 연타하거나 길게 누르면 안될 수도 있음)
+                if (count >= 0) {
+                    printf(" ");
+                    printf("\b");
+                    command[i] = 0;
+                    i -= 2; // 지운 자리에 새로 입력할 수 있도록 배열 자릿수 앞당김
+                }
+                else { // "command>" 부분이 지워지지 않도록 배열 자릿수가 0보다 작아지면 '>' 위치에 '>' 를 출력하여 침범 방지
+                    printf(">");
+                    i--;
+                }
+
             }
             else if(input == ESC) {
                 printf(">종료: 프로그램을 종료합니다.");
                 return 0;
             }
-            else if (input == '\r') {
+            else if (input == CR) {
                 printf("\n");
-                //줄바꿈 감지되면 배열 끝에 널문자 삽입
-                word[i] = 0;
+                command[i] = 0; //엔터 키 입력 시 배열 끝에 \0 삽입
                 count = i;
                 break;
             }
             else if (i >= 0) {
-                //특정 키 이외 나머지 조건: 입력되는 문자를 word 배열에 저장
-                word[i] = input;
-                count = i; //입력한 문자의 마지막 순서 저장
-                if (i >= 100) {
+                //특정 키 이외 나머지 조건: 입력되는 문자를 배열에 저장
+                if (i >= MAX_LENGTH_OF_COMMAND) {
                     printf("\n글자 수 초과, 다시 입력하세요.\ncommand>");
                     i = -1;
-                    //word 배열 자릿수 초과 시 재입력 요구하고 다시 0번째 자리로 이동
+                    //배열 자릿수 초과 시 재입력 요구하고 다시 0번째 자리로 이동
                 }
-            }
+                else {
+                    command[i] = input;
+                }
+                }
+            count = i;
         }
-        //word 배열 2번째 자리 널문자를 체크해서 명령어 감지
-        if (word[1] == 0) {
-            if (word[0] == 'q') {
+        boolean isEsterEgg = command[0] == 'c' && command[1] == 'o' && command[2] == 'm' && command[3] == 'm' && command[4] == 'a' && command[5] == 'n' && command[6] == 'd' && command[7] == 0;
+        if (command[1] == 0) { //command 배열 2번째 자리 널문자를 체크해서 명령어 감지
+            if (command[0] == 'q') {
                 printf("q: 신비한 화살\n");
             }
-            else if (word[0] == 'w') {
+            else if (command[0] == 'w') {
                 printf("w: 정수의 흐름\n");
             }
-            else if (word[0] == 'e') {
+            else if (command[0] == 'e') {
                 printf("e: 비전 이동\n");
             }
-            else if (word[0] == 'r') {
+            else if (command[0] == 'r') {
                 printf("r: 정조준 일격\n");
             }
-            else if (word[0] == 'd') {
+            else if (command[0] == 'd') {
                 printf("스펠1: 회복\n");
             }
-            else if (word[0] == 'f') {
+            else if (command[0] == 'f') {
                 printf("스펠2: 점멸\n");
             }
             else {
                 printf("잘못된 입력...\n");
             }
         }
-        else if (word[0] == 'c' && word[1] == 'o' && word[2] == 'm' && word[3] == 'm' && word[4] == 'a' && word[5] == 'n' && word[6] == 'd' && word[7] == 0) {
+        else if (isEsterEgg) {
             printf("와! 이스터에그!\n");
         }
         else {
             printf("잘못된 입력...\n");
         }
-        //word 배열 초기화
-        for (int i = 0; i < count; i++) {
-            word[i] = 0;
-        }
+        clearArray(command, count); //command 배열 초기화
     }
-    return 0;
-}
-
-void clearArray() {
-
+    return 202007017;
 }
 
 // 프로그램 실행: <Ctrl+F5> 또는 [디버그] > [디버깅하지 않고 시작] 메뉴
