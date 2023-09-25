@@ -62,14 +62,13 @@ int main() {
                 break;
             }
             else if (i >= 0) {
-                //특정 키 이외 나머지 조건: 입력되는 문자를 배열에 저장
                 if (i >= MAX_LENGTH_OF_COMMAND) {
                     printf("\n글자 수 초과, 다시 입력하세요.\ncommand>");
                     i = -1;
                     //배열 자릿수 초과 시 재입력 요구하고 다시 0번째 자리로 이동
                 }
                 else {
-                    command[i] = input;
+                    command[i] = input; //특정 키 이외 나머지 조건: 입력되는 문자를 배열에 저장
                 }
                 }
             count = i;
