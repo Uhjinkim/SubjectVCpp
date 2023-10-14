@@ -8,6 +8,7 @@
 
 // 전역 변수:
 HINSTANCE hInst;                                // 현재 인스턴스입니다.
+HWND hWnd;
 WCHAR szTitle[MAX_LOADSTRING];                  // 제목 표시줄 텍스트입니다.
 WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름입니다.
 POINT endPoint = { 0 };
@@ -15,6 +16,10 @@ int isKeyPressed = 0;
 RECT clientRect{};
 RECT rect_user = { 5, 5, 10, 10 }; // 왼쪽 상단 좌표 (50, 50)에서 오른쪽 하단 좌표 (150, 150)까지의 사각형
 RECT rect_target = { 50, 50, 150, 150 }; // 왼쪽 상단 좌표 (50, 50)에서 오른쪽 하단 좌표 (150, 150)까지의 사각형
+HDC backBufferDC = NULL;
+HBITMAP backBufferBitmap = NULL;
+int bufferWidth = 800;
+int bufferHeight = 600;
 
 bool movingRight = false;
 bool movingLeft = false;
@@ -25,31 +30,41 @@ UINT_PTR timerID;
 
 POINT offset = { 0,0 };
 
+void DrawRects(HDC hdc)
+{
+    HBRUSH hBrush_target = CreateSolidBrush(RGB(255, 0, 255));
+    FillRect(hdc, &rect_target, hBrush_target);
+    DeleteObject(hBrush_target);
+
+    HBRUSH hBrush_user = CreateSolidBrush(RGB(0, 0, 255));
+    FillRect(hdc, &rect_user, hBrush_user);
+    DeleteObject(hBrush_user);
+}
+
 void moveUser(HWND hWnd) {
     
         if (movingRight == movingLeft || (rect_user.left <= clientRect.left && movingLeft) || (rect_user.right >= clientRect.right && movingRight)) {
             offset.x = 0;
         }
         else if (movingLeft) {
-            offset.x = -5;
+            offset.x = -1;
         }
         else if (movingRight) {
-            offset.x = 5;
+            offset.x = 1;
         }
         if (movingUp == movingDown || (rect_user.top <= clientRect.top && movingUp) || (rect_user.bottom >= clientRect.bottom && movingDown)) {
             offset.y = 0;
         }
         else if (movingDown) {
-            offset.y = 5;
+            offset.y = 1;
         }
         else if (movingUp) {
-            offset.y = -5;
+            offset.y = -1;
         }
         rect_user.left += offset.x;
         rect_user.right += offset.x;
         rect_user.top += offset.y;
         rect_user.bottom += offset.y;
-        OutputDebugString(L"Moving..\n");
         InvalidateRect(hWnd, NULL, TRUE);
 }
 
@@ -171,7 +186,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message)
     {
     case WM_CREATE:
-        // 타이머 생성
         timerID = SetTimer(hWnd, 1, 16, NULL); // 16ms 간격으로 타이머 실행 (약 60fps)
         break;
     case WM_COMMAND:
@@ -225,12 +239,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
             GetClientRect(hWnd, &clientRect);
-            // TODO: 여기에 hdc를 사용하는 그리기 코드를 추가합니다...
-            HBRUSH hBrush_user = CreateSolidBrush(RGB(0, 0, 255));
-            HBRUSH hBrush_target = CreateSolidBrush(RGB(255, 0, 255));
-            HBRUSH hBrush_eraser = CreateSolidBrush(RGB(255, 255, 255));
-            FillRect(hdc, &rect_target, hBrush_target);
-            FillRect(hdc, &rect_user, hBrush_user);
+            DrawRects(hdc);
             bool isStartPointOver = rect_user.left >= rect_target.left && rect_user.top >= rect_target.top;
             bool isEndPointOver = rect_user.right <= rect_target.right && rect_user.bottom <= rect_target.bottom;
             if (isStartPointOver && isEndPointOver) {
@@ -244,6 +253,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         moveUser(hWnd);
         break;
     case WM_DESTROY:
+        KillTimer(hWnd, 1);
+        DeleteObject(backBufferBitmap);
+        DeleteDC(backBufferDC);
         PostQuitMessage(0);
         break;
     default:
