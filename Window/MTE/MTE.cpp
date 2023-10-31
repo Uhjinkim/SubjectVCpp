@@ -10,30 +10,32 @@
 HINSTANCE hInst;                                // 현재 인스턴스입니다.
 WCHAR szTitle[MAX_LOADSTRING];                  // 제목 표시줄 텍스트입니다.
 WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름입니다.
-RECT rcClient = { 0, 0, VIEW_WIDTH, VIEW_HEIGHT };
-RECT client, layout, canvas{};
-HWND hbuttons[BUTTON_COUNT];
-int polygon_state = 1;
+RECT rcClient = { 0, 0, VIEW_WIDTH, VIEW_HEIGHT }; //클라이언트 영역 지정 위한 사각형
+RECT client, layout, canvas{}; // 큰 박스는 레이아웃, 드로잉영역은 캔버스라고 지정
+HWND hbuttons[BUTTON_COUNT]; //반복문 사용해 버튼 생성
+int polygon_state = POLY_RECTANGLE; // 현재 그리는 도형의 모양 지정: 초기값 사각형
 
+//레이아웃과 캔버스 마진
 const int margin = 8;
 const int padding = 8;
 
 bool isMouseInCanvas;
 bool onBonobono = false;
 
+//반복문 사용하여 버튼 5개를 생성하기 위한 구조체
 struct BUTTON {
     WCHAR name[BUTTON_COUNT][10] = { L"직사각형", L"타원", L"보노보노", L"라이언", L"큐브"};
     int width = DFBUTTON_WIDTH;
     int height = DFBUTTON_HEIGHT;
-    const int margin = 16;
+    const int margin = 16; //버튼의 마진
     int menu[BUTTON_COUNT] = { POLY_RECTANGLE, POLY_ELLIPSE, POLY_BONO, POLY_RYAN, POLY_CUBE };
 };
 
 BUTTON btn{};
 POLY tmpPoly{};
 POINT start, end, mPos, axis, center,grab{};;
-BOOL isDrawing = FALSE;
-BOOL isEditing = FALSE;
+BOOL isDrawing = FALSE; //현재 그리고 있는지
+BOOL isEditing = FALSE; //크기조절이나 이동하고 있는지
 BOOL isSpaceBarPressed = FALSE;
 
 double dx, dy;
@@ -475,7 +477,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     DrawBonoBono(hdc, center.x, center.y, h_radius, v_radius, isSpaceBarPressed);
                     break;*/
                 case POLY_RYAN:
-                        DrawRyan(hdc, center.x, center.y, h_radius, v_radius);
+                        DrawRyan(hdc, center.x, center.y, start.y, end.y, h_radius, v_radius);
                     break;
                 case POLY_CUBE:
                         hbrush = CreateSolidBrush(RGB(130, 94, 219));
