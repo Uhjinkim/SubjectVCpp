@@ -56,7 +56,10 @@ void timer() {
     cout << "타이머 시작" << endl;
     std::this_thread::sleep_for(milliseconds(COMBO_VAILD_MS));
     isTimeOut = true;
-    cout << "타이머 종료" << endl;
+    if (isTimeOut) {
+        cout << "time over" << endl;
+        isTimeOut = false;
+    }
 }
 
 int main()
@@ -93,11 +96,7 @@ int main()
             t1.detach();
         }
         std::cout << int(input);
-        if (isTimeOut) {
-            cout << "time over" << endl;
-            count = -1;
-            isTimeOut = 0;
-        }
+        count = -1;
     }
 }
 
