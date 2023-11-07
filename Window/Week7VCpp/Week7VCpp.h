@@ -4,41 +4,56 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <list>
+#include <vector>
 using namespace std;
 
 #define MAX_POLYGON_EXIST 20 //저장되는 도형의 최대 개수
 
-#define KIND 7
+#define KIND 8
 
-#define POLY_RECTANGLE 1
+#define BRUSH_SOLID 0
+#define BRUSH_ERASE 1
+
 #define POLY_ELLIPSE 2
 #define POLY_TRIANGLE 3
+#define POLY_RECTANGLE 4
 #define POLY_PENTAGON 5
 #define POLY_HEXAGON 6
 #define POLY_STAR 10
 #define POLY_CUBE 12
 
 BOOL isDrawing = FALSE;
+BOOL isAdding = FALSE;
+BOOL isEditing = FALSE;
 BOOL isShiftKey = FALSE;
-struct POLY {
+BOOL isBrush = TRUE;
 
+int cPolygonState, cBrushState;
+
+struct BRUSHES {
+    POINT point{};
+    int shape;
+    int b_radius;
 };
+vector<BRUSHES> lines;
 
-//int polygon_count = 0; //그린 도형의 개수. 색인 지정
-//struct TRI : public POLY{
-//    POINT points[3];
-//};
-//struct STAR : public POLY {
-//    POINT points[10];
-//};
-//struct PENTA : public POLY {
-//    POINT points[5];
-//};
-//
-//list<TRI> tris;
-//list<STAR> stars;
-//list<PENTA> pentas;
+struct POLY {
+    RECT rect;
+    int shape;
+};
+list<POLY> polygons;
 
+int polygon_count = 0; //그린 도형의 개수
+void addPolyToList(RECT &rect, int shape) {
+    POLY poly{};
+    poly.rect = rect;
+    poly.shape = shape;
+    polygons.push_back(poly);
+    polygon_count += 1;
+    WCHAR debugMessage[100];
+        wsprintf(debugMessage, L"ADDED: %d, total %d \n", polygons.back().shape, polygon_count);
+        OutputDebugString(debugMessage);
+}
 
 void sortPoint(RECT &rect, int sx, int sy, int ex, int ey) {
     if (sx > ex) {
@@ -60,8 +75,10 @@ void sortPoint(RECT &rect, int sx, int sy, int ex, int ey) {
 
 }
 
-//DrawPolygons(x, y는 기준 타원의 원점 좌표, a는 가로 반지름, b는 세로 반지름, vertex는 꼭짓점 개수)
 
+
+//DrawPolygons(x, y는 기준 타원의 원점 좌표, a는 가로 반지름, b는 세로 반지름, vertex는 꼭짓점 개수)
+//삼각형, 오각형, 육각형 그리기로 사용중
 void DrawPolygons(HDC hdc, int x, int y, int a, int b, int vertex) {
     POINT points[10];
     double angle = 360.0 / vertex;
@@ -73,55 +90,6 @@ void DrawPolygons(HDC hdc, int x, int y, int a, int b, int vertex) {
         points[i] = { px, py };
     }
     Polygon(hdc, points, vertex);
-}
-
-//삼각형 그리기
-void DrawTriangle(HDC hdc, int x, int y, int a, int b) {
-    POINT points[3];
-    double angle = 360.0 / 3;
-
-    for (int i = 0; i < 3; i++) {
-        double radian = (angle * i - 90) * M_PI / 180.0;
-        int px = x + static_cast<int>(a * cos(radian));
-        int py = y + static_cast<int>(b * sin(radian));
-        points[i] = { px, py };
-    }
-
-    Polygon(hdc, points, 3);
-
- /*   if (isDrawing == FALSE) {
-        TRI tri;
-        for (int i = 0; i < 3; i++) {
-            tri.points[i] = points[i];
-        }
-        tris.push_back(tri);
-    }*/
-}
-
-//오각형 그리기
-void DrawPentagon(HDC hdc, int x, int y, int a, int b) {
-    POINT points[5];
-    double angle = 360.0 / 5;
-
-    for (int i = 0; i < 5; i++) {
-        double radian = (angle * i - 90) * M_PI / 180.0;
-        int px = x + static_cast<int>(a * cos(radian));
-        int py = y + static_cast<int>(b * sin(radian));
-        points[i] = { px, py };
-        WCHAR debugMessage[100];
-        wsprintf(debugMessage, L"point: %d, %d\n", px, py);
-        OutputDebugString(debugMessage);
-    }
-
-    Polygon(hdc, points, 5);
-
-   /* if (isDrawing == FALSE) {
-        PENTA penta;
-        for (int i = 0; i < 5; i++) {
-            penta.points[i] = points[i];
-        }
-        pentas.push_back(penta);
-    }*/
 }
 //별 그리기
 void DrawStar(HDC hdc, int x, int y, int a, int b) {
@@ -143,14 +111,6 @@ void DrawStar(HDC hdc, int x, int y, int a, int b) {
     }
     // 별모양 그리기
     Polygon(hdc, points, 10);
-
-    /*if (isDrawing == FALSE) {
-        STAR star;
-        for (int i = 0; i < 10; i++) {
-            star.points[i] = points[i];
-        }
-        stars.push_back(star);
-    }*/
 }
 void DrawCube(HDC hdc, int sx, int sy, int ex, int ey) {
     POINT points[12];
@@ -174,6 +134,56 @@ void DrawCube(HDC hdc, int sx, int sy, int ex, int ey) {
     Polygon(hdc, points, 12);
 
 }
+
+void DrawBrush(HDC hdc, int ex, int ey) {
+    if (isBrush) {
+        BRUSHES line;
+        int left, right, top, bottom, cx, cy, h_r, v_r;
+        line.point.x = ex;
+        line.point.y = ey;
+        line.b_radius = 10;
+        left = line.point.x - line.b_radius;
+        right = line.point.x + line.b_radius;
+        top = line.point.y - line.b_radius;
+        bottom = line.point.y + line.b_radius;
+        cx = (left + right) / 2;
+        cy = (top + bottom) / 2;
+        h_r = (right - left) / 2;
+        v_r = (bottom - top) / 2;
+
+        switch (cPolygonState) {
+        case POLY_ELLIPSE:
+            Ellipse(hdc, left, right, top, bottom);
+            break;
+        case POLY_RECTANGLE:
+            //직사각형 그리기
+            Rectangle(hdc, left, right, top, bottom);
+            break;
+            //삼각형 그리기(타원에 내접)
+        case POLY_TRIANGLE:
+            DrawPolygons(hdc, cx, cy, h_r, v_r, 3);
+            break;
+        case POLY_PENTAGON:
+            // 오각형 그리기(타원에 내접)
+            DrawPolygons(hdc, cx, cy, h_r, v_r, 5);
+            break;
+        case POLY_HEXAGON:
+            // 육각형 그리기(타원에 내접)
+            DrawPolygons(hdc, cx, cy, h_r, v_r, 6);
+            break;
+        case POLY_STAR:
+            //별 그리기(타원에 내접)
+            DrawStar(hdc, cx, cy, h_r, v_r);
+            break;
+        case POLY_CUBE:
+            //큐브 그리기(타원에 내접)
+            DrawCube(hdc, left, right, top, bottom);
+            break;
+        }
+        lines.push_back(line);
+    }
+}
+
 /*
 void DrawHeart(HDC hdc,int cx, int cy, int a, int b) {
     int numpoints = 5000;

@@ -143,6 +143,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
       CW_USEDEFAULT, 0, width, height, nullptr, nullptr, hInstance, nullptr);
 
+   HWND hPolygonButton = CreateWindowW(L"BUTTON", L"도형: 사각형", WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,
+       10, 10, 100, 30, hWnd, (HMENU)BTN_SET_POLYGON, hInst, nullptr);
+
    if (!hWnd)
    {
       return -1;
@@ -185,12 +188,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     switch (message)
     {
-    case WM_CREATE:
-    {
-        hPolygonButton = CreateWindowW(L"BUTTON", L"도형: 사각형", WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,
-            10, 10, 100, 30, hWnd, (HMENU)BTN_SET_POLYGON, hInst, nullptr);
-        break;
-    }
     case WM_COMMAND:
     {
         int wmId = LOWORD(wParam);
@@ -271,7 +268,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             endPoint.x = LOWORD(lParam);
             endPoint.y = HIWORD(lParam);
             RECT crect = {startPoint.x, startPoint.y, endPoint.x, endPoint.y};
-            InvalidateRect(hWnd, &crect, TRUE);
+            InvalidateRect(hWnd, NULL, TRUE);
         }
         return 0;
     }
