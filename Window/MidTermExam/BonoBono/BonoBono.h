@@ -2,7 +2,6 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
-#include "Resource.h"
 
 //클라이언트 영역 지정을 위한 너비, 높이 상수
 #define VIEW_WIDTH 800
@@ -160,10 +159,10 @@ void DrawRyan(HDC hdc, int x, int y, int sy, int ey, int a, int b) {
         Ellipse(hdc, px - a / 12, py - b / 12, px + a / 12, py + b / 12);
         //라이언 눈썹 그리기
         if (isReversed) {
-            Rectangle(hdc, px - a / 5, py + b * 1 / 3, px + a / 5, py + b * 1 / 3 + b / 12);
+            Rectangle(hdc, px - a / 5, py + b * 1 / 3 - b / 12, px + a / 5, py + b * 1 / 3);
             int rds = b / 24;
-            Ellipse(hdc, px - a / 5 - rds, py + b * 1 / 3, px - a / 5 + rds, py + b * 1 / 3 + b / 12);
-            Ellipse(hdc, px + a / 5 - rds, py + b * 1 / 3, px + a / 5 + rds, py + b * 1 / 3 + b / 12);
+            Ellipse(hdc, px - a / 5 - rds, py + b * 1 / 3 - b / 12, px - a / 5 + rds, py + b * 1 / 3);
+            Ellipse(hdc, px + a / 5 - rds, py + b * 1 / 3 - b / 12, px + a / 5 + rds, py + b * 1 / 3);
         }
         else {
             Rectangle(hdc, px - a / 5, py - b * 1 / 3, px + a / 5, py - b * 1 / 3 + b / 12);

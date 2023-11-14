@@ -1,8 +1,8 @@
-﻿// MTE.cpp : 애플리케이션에 대한 진입점을 정의합니다.
+﻿// yuhanCG.cpp : 애플리케이션에 대한 진입점을 정의합니다.
 //
-#include "Resource.h"
+
 #include "framework.h"
-#include "BonoBono.h"
+#include "yuhanCG.h"
 
 #define MAX_LOADSTRING 100
 
@@ -59,7 +59,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     // 전역 문자열을 초기화합니다.
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadStringW(hInstance, IDC_BONOBONO, szWindowClass, MAX_LOADSTRING);
+    LoadStringW(hInstance, IDC_RYAN, szWindowClass, MAX_LOADSTRING);
     MyRegisterClass(hInstance);
 
     // 애플리케이션 초기화를 수행합니다:
@@ -99,7 +99,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.cbClsExtra = 0;
     wcex.cbWndExtra = 0;
     wcex.hInstance = hInstance;
-    wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_BONOBONO));
+    wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_RYAN));
     wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
     wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
     wcex.lpszMenuName = NULL;
@@ -467,15 +467,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 DeleteObject(hbrush);
                 savePoly(tmpPoly, start.x, start.y, end.x, end.y, POLY_ELLIPSE);
                 break;
-                /*case POLY_BONO:
-                    center.x = (canvas.left + canvas.right) / 2;
-                    center.y = (canvas.top + canvas.bottom) / 2;
-                    h_radius = 100;
-                    v_radius = 100;
-                    DrawBonoBono(hdc, center.x, center.y, h_radius, v_radius, isSpaceBarPressed);
-                    break;*/
             case POLY_RYAN:
-                DrawRyan(hdc, center.x, center.y, start.y, end.y, h_radius, v_radius);
+                DrawRyan(hWnd, hdc, start.x, start.y, end.x, end.y);
                 break;
             case POLY_CUBE:
                 hbrush = CreateSolidBrush(RGB(130, 94, 219));
@@ -487,11 +480,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
         if (polygon_state == POLY_BONO && onBonobono) {
-            center.x = (canvas.left + canvas.right) / 2;
-            center.y = (canvas.top + canvas.bottom) / 2;
-            h_radius = 100;
-            v_radius = 100;
-            DrawBonoBono(hdc, center.x, center.y, h_radius, v_radius, isSpaceBarPressed);
+            DrawBonobono(hWnd, hdc, isSpaceBarPressed);
         }
         EndPaint(hWnd, &ps);
     }
