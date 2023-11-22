@@ -26,3 +26,9 @@ void DrawRyan(HWND hWnd, HDC hdc, int left, int top, int right, int bottom) {
 		DrawRyan(hdc, centerX, centerY, top, bottom, hRadius, vRadius);
 	}
 }
+
+RECT createLayout(HWND hWnd, RECT rect, int margin) {
+	GetClientRect(hWnd, &rect);
+	rect = { client.left + margin, client.top + margin, client.right - margin, client.bottom - margin };
+	return rect;
+}

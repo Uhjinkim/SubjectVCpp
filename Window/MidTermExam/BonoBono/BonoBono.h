@@ -19,6 +19,8 @@
 #define POLY_RYAN 4
 #define POLY_CUBE 5
 
+
+
 //도형을 그리고 나서 정보를 저장할 구조체
 struct POLY {
     int left;
@@ -27,8 +29,58 @@ struct POLY {
     int bottom;
     int shape;
     bool h_reverse;
-    bool v_reverse;
+    bool v_reverse;;
 };
+
+//POLY와 그 전 POLY의 주소를 가지는 노드
+struct Node {
+    struct POLY polygon;
+    struct Node* prev_poly;
+};
+//노드를 저장할 스택
+struct PolygonStack {
+    int top;
+    struct Node* data;
+
+};
+
+//스택: 푸시
+void push(struct PolygonStack* stack, struct POLY polygon) {
+    struct Node* new_node = (struct Node*)malloc(sizeof(struct Node));
+    if (!new_node) {
+        exit(EXIT_FAILURE);
+    }
+    new_node->polygon = polygon;
+    new_node->prev_poly = stack->data;
+    stack->top++;
+
+
+}
+//스택: 팝
+POLY pop(struct PolygonStack* stack) {
+    if (stack->top == 0) {
+        exit(EXIT_FAILURE);
+    }
+    POLY poped_poly = stack->data->polygon;
+    struct Node* temp = stack->data;
+    stack->data = stack->data->prev_poly;
+
+    free(temp);
+    stack->top--;
+
+    return poped_poly;
+}
+/*
+void show(struct PolygonStack* stack) {
+    std::cout << "현재 스택 상태: \n";
+    Node* current = stack->top;
+    while (current != nullptr) {
+        std::cout << current->data << " ";
+        current = current->next;
+    }
+    std::cout << std::endl;
+}
+*/
 
 void savePoly(POLY& rect, int sx, int sy, int ex, int ey, int shape) {
     rect.shape = shape;
