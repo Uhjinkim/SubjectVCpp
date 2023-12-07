@@ -1,6 +1,6 @@
 #pragma once
 
-typedef struct MARGIN {
+struct MARGIN {
     int left = 0;
     int top = 0;
     int right = 0;
@@ -9,14 +9,14 @@ typedef struct MARGIN {
     void setMargin(int marginAll) {
         left = marginAll; 
         top = marginAll;
-        right = marginAll * 2;
-        bottom = marginAll * 2;
+        right = marginAll;
+        bottom = marginAll;
     }
     void setMargin(int marginHorizental, int marginVertical) {
         left = marginHorizental;
         top = marginVertical;
-        right = marginHorizental * 2;
-        bottom = marginVertical * 2;
+        right = marginHorizental;
+        bottom = marginVertical;
     }
     void setMargin(int marginLeft, int marginTop, int marginRight, int marginBottom) {
         left = marginLeft;
@@ -26,7 +26,7 @@ typedef struct MARGIN {
     }
 };
 
-typedef struct PADDING {
+struct PADDING {
     int left = 0;
     int top = 0;
     int right = 0;
@@ -37,23 +37,23 @@ typedef struct PADDING {
         if (paddingAll > 0) {
             left = paddingAll;
             top = paddingAll;
-            right = paddingAll * 2;
-            bottom = paddingAll * 2;
+            right = paddingAll;
+            bottom = paddingAll;
         }
     }
     void setPadding(int paddingHorizental, int paddingVertical) {
         if (paddingHorizental > 0 && paddingVertical > 0) {
             left = paddingHorizental;
             top = paddingVertical;
-            right = paddingHorizental * 2;
-            bottom = paddingVertical * 2;
+            right = paddingHorizental;
+            bottom = paddingVertical;
         }
     }
     void setPadding(int paddingLeft, int paddingTop, int paddingRight, int paddingBottom) {
         left = paddingLeft;
         top = paddingTop;
-        right = paddingRight + paddingLeft;
-        bottom = paddingBottom + paddingTop;
+        right = paddingRight;
+        bottom = paddingBottom;
     }
 };
 
@@ -63,16 +63,20 @@ protected:
     wchar_t* windowName;
     wchar_t* className;
 public:
+    Widget* parent;
     DWORD dwExStyle = 0;
-    DWORD dwStyle = {};
+    DWORD dwStyle = 0;
     MARGIN margin;
     PADDING padding;
+    int x = 0;
+    int y = 0;
     int width = 0;
     int height = 0;
     HMENU hMenu = nullptr;
     Widget() {
         windowName = nullptr;
         className = nullptr;
+        setParent(nullptr);
 
     }
     ~Widget() {
@@ -80,21 +84,10 @@ public:
         delete[] className;
     }
 
-    /*
-    void setMargin(int margininput) {
-        margin = { margininput, margininput, margininput*2, margininput*2 };
-    }
-    void setMargin(int marginHorizental, int marginVertical) {
-        margin = { marginHorizental, marginVertical, marginHorizental*2, marginVertical*2 };
-    }
-    void setMargin(int marginLeft, int marginTop, int marginRight, int marginBottom) {
-        margin = { marginLeft, marginTop, marginRight+marginLeft, marginBottom+marginTop };
-    }
-    */
-
     wchar_t* getWindowName() {
         if (windowName != nullptr)
             return windowName;
+        else return nullptr;
     }
 
     void setWindowName(const wchar_t* name) {
@@ -107,28 +100,54 @@ public:
     wchar_t* getClassName() {
         if (className != nullptr)
             return className;
+        else return nullptr;
     }
 
     void setClassName(const wchar_t* name) {
         delete[] className;
-        size_t length = wcslen(name);
+        size_t length = wcslen(name) + 1;
         className = new wchar_t[length];
         wcscpy_s(className, length, name);
     }
+
+    void setParent(Widget* _parent) {
+        parent = _parent;
+        if (parent != nullptr) {
+            setStartPoint(0, 0);
+            setWidthAuto();
+            setHeightAuto();
+        }
+    }
+    void setStartPoint(int _x, int _y) {
+        x = _x + parent->padding.left + margin.left;
+        y = _y + parent->padding.top + margin.top;
+    }
+    void setWidthAuto() {
+        width = parent->width - parent->padding.right - margin.right - x;
+    }
+    void setWidthAuto(int _width) {
+        width = _width - parent->padding.right - margin.right - x;
+    }
+    void setWidth(int _width) {
+        width = _width;
+    }
+    void setHeightAuto() {
+        height = parent->height - parent->padding.bottom - margin.bottom - y;
+    }
+    void setHeightAuto(int _height) {
+        height = _height - parent->padding.bottom - margin.bottom - y;
+    }
+    void setHeight(int _height) {
+        height = _height;
+    }
 };
 
-
-
-
 struct ButtonWidget : Widget {
-    int menu= 0;
     ButtonWidget() : Widget() {
-        setClassName(L"BUTTON");
         dwStyle = WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON;
         margin.setMargin(16);
+        padding.setPadding(0);
     }
     ~ButtonWidget() {
-        delete[] windowName;
-        delete[] className;
     }
 };
